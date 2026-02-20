@@ -16,7 +16,7 @@ data_buses = gpd.read_file(
 )
 
 # Add a new column 'centroid' to store the centroid of each geometry
-data_buses['centroid'] = data_buses.geometry.centroid
+data_buses['centroid'] = data_buses.geometry.centroid.apply(lambda geom: (geom.x, geom.y))
 
 matpower_buses = gpd.GeoDataFrame({
     'bus_i': range(1, len(data_buses) + 1),
@@ -36,31 +36,3 @@ matpower_buses = gpd.GeoDataFrame({
 
 matpower_buses.to_csv(f'matpower_{region}.csv', index=False)
 data_buses.to_csv(f'full_overpass_{region}_transmission.csv', index=False)
-
-
-
-#######################################
-## Now let's do the same for the lines 
-#######################################
-region = "ghana_lines"
-data_lines = gpd.read_file(
-    f"files/export_{region}.geojson"
-)
-
-
-matpower_buses = gpd.GeoDataFrame({
-    'f_bus': range(1, len(data_buses) + 1),
-    't_bus': 1,
-    'r': per_capita_consumption * country_population / len(data_buses.geometry),  # Distribute load evenly
-    'x': 0,  # Assuming no reactive power demand for simplicity
-    'b': 0,
-    'rateA': 0,
-    'rateB': 1,
-    'rateC': 1,
-    'ratio': 0,
-    'angle': data_buses.voltage,  # Convert voltage to kV
-    'status': 1.1,
-    'angmin': 0.9,
-    'angmax': data_buses['centroid']  # Use the centroid of each row
-})
-
